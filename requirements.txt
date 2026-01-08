@@ -1,0 +1,29 @@
+# Core
+python-dotenv==1.0.1
+
+# LangChain (new runnable architecture)
+langchain==0.2.16
+langchain-core==0.2.38
+langchain-community==0.2.16
+langchain-text-splitters==0.2.4
+
+# Vector Store
+chromadb==0.5.5
+langchain-chroma==0.1.4
+
+# Embeddings
+sentence-transformers==2.7.0
+langchain-huggingface==0.0.3
+
+# LLM
+langchain-groq==0.1.9
+
+# Web scraping
+beautifulsoup4==4.12.3
+requests==2.32.3
+
+# UI
+streamlit==1.39.0
+
+# Utilities
+uuid==1.30

@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+env/
+venv/
+
+# Environment variables
+.env
+
+# Vector database
+resources/vectorstore/
+
+# macOS
+.DS_Store
+
+# Streamlit
+.streamlit/
+
+# Logs
+*.log
