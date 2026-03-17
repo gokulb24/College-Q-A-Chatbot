@@ -2,25 +2,30 @@
 python-dotenv==1.0.1
 
 # LangChain (new runnable architecture)
-langchain==0.2.16
-langchain-core==0.2.38
-langchain-community==0.2.16
-langchain-text-splitters==0.2.4
+langchain==1.2.12
+langchain-core==1.2.18
+langchain-community==0.4.1
+langchain-text-splitters==1.1.1
 
 # Vector Store
 chromadb==0.5.5
-langchain-chroma==0.1.4
+langchain-chroma==0.1.2
 
 # Embeddings
-sentence-transformers==2.7.0
-langchain-huggingface==0.0.3
+sentence-transformers==5.2.0
+langchain-huggingface>=1.2.1
 
 # LLM
-langchain-groq==0.1.9
+langchain-groq==1.1.2
 
 # Web scraping
 beautifulsoup4==4.12.3
-requests==2.32.3
+requests>=2.32.3
+selenium>=4.15.0
+unstructured>=0.10.0
+
+# PDF processing
+pypdf>=4.0.0
 
 # UI
 streamlit==1.39.0
