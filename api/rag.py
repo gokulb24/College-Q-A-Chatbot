@@ -112,76 +112,22 @@ def initialize_components():
             max_tokens=500
         )
 
-    ef = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
+    if vector_store is None:
+        ef = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
 
-    vector_store = Chroma(
-        collection_name=COLLECTION_NAME,
-        embedding_function=ef,
-        persist_directory=str(VECTORSTORE_DIR),
-        client_settings=Settings(
-            anonymized_telemetry=False,
-            allow_reset=True
+        # Ensure directory exists before initialization
+        if not VECTORSTORE_DIR.exists():
+            VECTORSTORE_DIR.mkdir(parents=True, exist_ok=True)
+
+        vector_store = Chroma(
+            collection_name=COLLECTION_NAME,
+            embedding_function=ef,
+            persist_directory=str(VECTORSTORE_DIR),
+            client_settings=Settings(
+                anonymized_telemetry=False,
+                allow_reset=True
+            )
         )
-    )
-
-
-# ---------------- INGEST: URLs only (backwards compatible) ----------------
-def process_urls(urls):
-    global vector_store
-
-    yield "Initializing components..."
-    if VECTORSTORE_DIR.exists():
-        shutil.rmtree(VECTORSTORE_DIR)
-
-    initialize_components()
-
-    yield "Loading web pages (with JS rendering, please wait ~15s per page)..."
-    data = load_urls_with_selenium(urls)
-
-    yield "Splitting text..."
-    splitter = RecursiveCharacterTextSplitter(
-        separators=["\n\n", "\n", ".", " "],
-        chunk_size=CHUNK_SIZE,
-        chunk_overlap=CHUNK_OVERLAP
-    )
-    docs = splitter.split_documents(data)
-
-    yield "Embedding and storing documents..."
-    ids = [str(uuid4()) for _ in docs]
-    vector_store.add_documents(docs, ids=ids)
-
-    yield "Done ✅ URLs processed successfully"
-
-
-# ---------------- INGEST: PDFs only ----------------
-def process_pdfs(pdf_paths: List[str]):
-    global vector_store
-
-    yield "Initializing components..."
-    if VECTORSTORE_DIR.exists():
-        shutil.rmtree(VECTORSTORE_DIR)
-
-    initialize_components()
-
-    yield f"Loading {len(pdf_paths)} PDF file(s)..."
-    all_docs = []
-    for pdf_path in pdf_paths:
-        loader = PyPDFLoader(pdf_path)
-        all_docs.extend(loader.load())
-
-    yield "Splitting text..."
-    splitter = RecursiveCharacterTextSplitter(
-        separators=["\n\n", "\n", ".", " "],
-        chunk_size=CHUNK_SIZE,
-        chunk_overlap=CHUNK_OVERLAP
-    )
-    docs = splitter.split_documents(all_docs)
-
-    yield "Embedding and storing documents..."
-    ids = [str(uuid4()) for _ in docs]
-    vector_store.add_documents(docs, ids=ids)
-
-    yield f"Done ✅ {len(pdf_paths)} PDF(s) processed successfully"
 
 
 # ---------------- INGEST: URLs + PDFs (unified) ----------------
@@ -192,9 +138,6 @@ def process_all(urls: List[str] = None, pdf_paths: List[str] = None):
     pdf_paths = pdf_paths or []
 
     yield "Initializing components..."
-    if VECTORSTORE_DIR.exists():
-        shutil.rmtree(VECTORSTORE_DIR)
-
     initialize_components()
 
     all_docs = []
@@ -247,6 +190,33 @@ def process_all(urls: List[str] = None, pdf_paths: List[str] = None):
     if pdf_doc_count > 0:
         parts.append(f"{pdf_doc_count} PDF page(s)")
     yield f"Done ✅ {' and '.join(parts)} processed into {len(docs)} chunks"
+
+
+def reset_vector_store():
+    """Manually clear the entire vector database."""
+    global vector_store
+    
+    # Initialize if not already (to get the client)
+    initialize_components()
+    
+    if vector_store is not None:
+        # Chroma with allow_reset=True supports reset()
+        try:
+            vector_store._client.reset()
+            # Also reset local variable to force re-initialization if needed
+            vector_store = None
+            # Re-initialize a fresh, empty one
+            initialize_components()
+            return True
+        except Exception as e:
+            print(f"Error resetting vector store: {e}")
+            # Fallback: Delete the directory
+            if VECTORSTORE_DIR.exists():
+                shutil.rmtree(VECTORSTORE_DIR)
+                vector_store = None
+                initialize_components()
+                return True
+    return False
 
 
 # ---------------- QUERY ----------------

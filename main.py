@@ -1,9 +1,12 @@
 import streamlit as st
 import tempfile
 import os
-from rag import process_all, generate_answer
+from rag import process_all, generate_answer, initialize_components, reset_vector_store
 
 st.title("Vels College Chatbot")
+
+# --- Initialize context on startup (Persistent) ---
+initialize_components()
 
 # --- Sidebar: URL inputs ---
 st.sidebar.header("📎 URLs")
@@ -23,6 +26,14 @@ placeholder = st.empty()
 
 # --- Sidebar: Process button ---
 process_button = st.sidebar.button("Process Sources")
+
+# --- Sidebar: Clear button ---
+if st.sidebar.button("🗑️ Clear Database", help="Delete all stored vectors and documents"):
+    if reset_vector_store():
+        st.sidebar.success("Database cleared!")
+        st.rerun()
+    else:
+        st.sidebar.error("Failed to clear database.")
 
 if process_button:
     urls = [url for url in (url1, url2, url3) if url.strip()]

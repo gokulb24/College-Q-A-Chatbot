@@ -14,6 +14,14 @@ venv/
 
 # Vector database
 resources/vectorstore/
+api/resources/vectorstore/
+
+# PDF uploads (user data)
+api/pdf_files/*.pdf
+
+# Node
+node_modules/
+.next/
 
 # macOS
 .DS_Store
